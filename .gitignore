@@ -1,0 +1,14 @@
+data
+kafka
+mysql
+redis
+portainer
+zookeeper
+elasticsearch
+postgres
+minio
+redis
+.history
+.idea
+.env
+db.*

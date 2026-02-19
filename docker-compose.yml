@@ -1,0 +1,110 @@
+services:
+   kafka:
+    image: 'wurstmeister/kafka:2.13-2.8.1'
+    container_name: kafka
+    restart: unless-stopped
+    # environment:
+    #   - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - ./kafka:/var/run/docker.sock
+    ports:
+      - "9092:9092"
+    networks:
+     - devtools
+   kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8074:8080"
+    restart: unless-stopped
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=dev-cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      # If you prefer UI for Apache Kafka in read only mode
+     # - KAFKA_CLUSTERS_0_READONLY=true
+    networks:
+     - devtools  
+   redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - ./redis:/data
+    ports:
+     - "6379:6379"
+    networks:
+       - devtools
+   mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./db.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    ports:
+      - "3306:3306"
+    networks:
+      - devtools
+   phpmyadmin:
+    image: phpmyadmin:5.2.0-apache
+    container_name: phpmyadmin
+    depends_on:
+       - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    restart: unless-stopped
+    ports:
+      - "8075:80"
+    networks:
+      - devtools
+   postgres:
+    image: postgres:14.5 
+    container_name: postgres
+    restart: unless-stopped
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+    ports:
+      - "5432:5432"
+    networks:
+      - devtools
+   pgadmin4:
+    container_name: pgadmin4
+    image: dpage/pgadmin4:9.12
+    environment:
+      PGADMIN_DEFAULT_EMAIL : ${DB_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD : ${DB_PASSWORD}
+    ports:
+      - "8076:80"
+    networks:
+      - devtools
+   minio:
+    image: 'minio/minio'
+    container_name:  minio
+    restart: unless-stopped
+    ports:
+      # API Port
+      - '9000:9000'
+      # Console Port
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: ${DB_USERNAME}
+      MINIO_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./minio:/data
+    networks:
+      - devtools
+networks:
+  devtools:
+    external: false
+    name: devtools 
