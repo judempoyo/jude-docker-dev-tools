@@ -6,7 +6,12 @@ ALL_PROFILES = COMPOSE_PROFILES="*"
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-up: ## Start core services (without profiles)
+check-tools:
+	@command -v docker >/dev/null 2>&1 || { echo "\033[31mError: docker is not installed.\033[0m"; exit 1; }
+	@command -v docker compose >/dev/null 2>&1 || { echo "\033[31mError: docker-compose is not installed.\033[0m"; exit 1; }
+	@echo "\033[32mAll tools are installed! \033[0m"
+
+up: check-tools ## Start core services (without profiles)
 	$(COMPOSE) up -d
 
 all: ## Start all services including all profiles (kafka, redis, psql, mail, tools, etc.)
@@ -17,7 +22,7 @@ mysql: ## Focus: Start postgres and pgadmin services
 
 db-cache: ## Focus: Start MySQL and Redis services
 	$(COMPOSE) --profile mysql --profile redis up -d
-	
+
 infra: ## Focus: Start infrastructure services (psql, redis, mail)
 	$(COMPOSE) --profile psql --profile redis --profile mail up -d
 
