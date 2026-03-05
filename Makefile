@@ -15,8 +15,26 @@ all: ## Start all services including all profiles (kafka, redis, psql, mail, too
 infra: ## Focus: Start infrastructure services (psql, redis, mail)
 	$(COMPOSE) --profile psql --profile redis --profile mail up -d
 
+psql: ## Focus: Start postgres and pgadmin services 
+	$(COMPOSE) --profile psql up -d
+
+redis: ## Focus: Start redis and redis insight services 
+	$(COMPOSE) --profile redis  up -d
+
+mail: ## Focus: Start mail service
+	$(COMPOSE)  --profile mail up -d
+
 stream: ## Focus: Start streaming stack (kafka, redis)
 	$(COMPOSE) --profile kafka --profile redis up -d
+
+kafka: ## Focus: Start kafka, kafka-ui and zookeeper services 
+	$(COMPOSE) --profile kafka up -d
+
+docker: ## Focus: Start portainer and dozzle services
+	$(COMPOSE) --profile docker  up -d
+
+tools: ## Focus: Start minio service
+	$(COMPOSE) --profile tools  up -d
 
 down: ## Stop and remove all containers, networks, and images (all profiles)
 	$(ALL_PROFILES) $(COMPOSE) down
