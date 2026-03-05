@@ -1,17 +1,28 @@
 services:
-   kafka:
-    image: 'wurstmeister/kafka:2.13-2.8.1'
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    profiles: [kafka]
+    networks:
+      - devtools
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.8.1
     container_name: kafka
-    restart: unless-stopped
-    # environment:
-    #   - ALLOW_PLAINTEXT_LISTENER=yes
-    volumes:
-      - ./kafka:/var/run/docker.sock
+    depends_on:
+      - zookeeper
     ports:
       - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - ./kafka:/kafka
+    profiles: [kafka]
     networks:
-     - devtools
-   kafka-ui:
+      - devtools
+  kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     ports:
@@ -21,10 +32,11 @@ services:
       - KAFKA_CLUSTERS_0_NAME=dev-cluster
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
       # If you prefer UI for Apache Kafka in read only mode
-     # - KAFKA_CLUSTERS_0_READONLY=true
+      # - KAFKA_CLUSTERS_0_READONLY=true
+    profiles: [kafka]
     networks:
-     - devtools  
-   redis:
+      - devtools
+  redis:
     image: redis:alpine
     container_name: redis
     restart: unless-stopped
@@ -32,10 +44,50 @@ services:
     volumes:
       - ./redis:/data
     ports:
-     - "6379:6379"
+      - "6379:6379"
+    profiles: [redis]
     networks:
-       - devtools
-   mysql:
+      - devtools
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "8077:5540"
+    profiles: [redis]
+    networks:
+      - devtools
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "8025:8025" # UI
+      - "1025:1025" # SMTP
+    profiles: [mail]
+    networks:
+      - devtools
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8078:8080"
+    profiles: [docker]
+    networks:
+      - devtools
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer:/data
+    ports:
+      - "8079:9000"
+    profiles: [docker]
+    networks:
+      - devtools
+  mysql:
     image: mysql:8.0
     container_name: mysql
     restart: unless-stopped
@@ -51,11 +103,11 @@ services:
       - "3306:3306"
     networks:
       - devtools
-   phpmyadmin:
+  phpmyadmin:
     image: phpmyadmin:5.2.0-apache
     container_name: phpmyadmin
     depends_on:
-       - mysql
+      - mysql
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
@@ -64,8 +116,8 @@ services:
       - "8075:80"
     networks:
       - devtools
-   postgres:
-    image: postgres:14.5 
+  postgres:
+    image: postgres:14.5
     container_name: postgres
     restart: unless-stopped
     volumes:
@@ -76,35 +128,39 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
     ports:
       - "5432:5432"
+    profiles: [psql]
     networks:
       - devtools
-   pgadmin4:
+  pgadmin4:
     container_name: pgadmin4
     image: dpage/pgadmin4:9.12
     environment:
-      PGADMIN_DEFAULT_EMAIL : ${DB_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD : ${DB_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${DB_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8076:80"
+    profiles: [psql]
     networks:
       - devtools
-   minio:
-    image: 'minio/minio'
-    container_name:  minio
+  minio:
+    image: "minio/minio"
+    container_name: minio
     restart: unless-stopped
+    command: server /data --console-address ":9001"
     ports:
       # API Port
-      - '9000:9000'
+      - "9000:9000"
       # Console Port
-      - '9001:9001'
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${DB_USERNAME}
       MINIO_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./minio:/data
+    profiles: [tools]
     networks:
       - devtools
 networks:
   devtools:
     external: false
-    name: devtools 
+    name: devtools
