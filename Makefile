@@ -12,6 +12,12 @@ up: ## Start core services (without profiles)
 all: ## Start all services including all profiles (kafka, redis, psql, mail, tools, etc.)
 	$(ALL_PROFILES) $(COMPOSE) up -d
 
+mysql: ## Focus: Start postgres and pgadmin services 
+	$(COMPOSE) --profile mysql up -d
+
+db-cache: ## Focus: Start MySQL and Redis services
+	$(COMPOSE) --profile mysql --profile redis up -d
+	
 infra: ## Focus: Start infrastructure services (psql, redis, mail)
 	$(COMPOSE) --profile psql --profile redis --profile mail up -d
 

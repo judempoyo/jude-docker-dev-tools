@@ -101,6 +101,7 @@ services:
       MYSQL_USER: ${DB_USERNAME}
     ports:
       - "3306:3306"
+    profiles: [mysql]
     networks:
       - devtools
   phpmyadmin:
@@ -114,6 +115,7 @@ services:
     restart: unless-stopped
     ports:
       - "8075:80"
+    profiles: [mysql]
     networks:
       - devtools
   postgres:
