@@ -47,6 +47,25 @@ docker: ## Focus: Start portainer and dozzle services
 tools: ## Focus: Start minio service
 	$(COMPOSE) --profile tools  up -d
 
+obs: ## Focus: Start Prometheus and Grafana
+	$(COMPOSE) --profile obs up -d
+
+security: ## Focus: Start HashiCorp Vault
+	$(COMPOSE) --profile security up -d
+
+proxy: ## Focus: Start  Cloudflared
+	$(COMPOSE) --profile proxy up -d
+
+full-stack: ## Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
+	$(COMPOSE) --profile mysql --profile redis --profile mail --profile proxy up -d
+
+
+stats: ## Display resource usage for all services
+	docker stats --no-stream
+
+version: ## Show versions of images used
+	$(ALL_PROFILES) $(COMPOSE) images
+
 down: ## Stop and remove all containers, networks, and images (all profiles)
 	$(ALL_PROFILES) $(COMPOSE) down
 

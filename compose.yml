@@ -1,10 +1,11 @@
 services:
+  # --- MESSAGE BROKING & STREAMING (Kafka Stack) ---
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: zookeeper
     profiles: [kafka]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
 
   kafka:
     image: wurstmeister/kafka:2.13-2.8.1
@@ -21,7 +22,7 @@ services:
       - ./kafka:/kafka
     profiles: [kafka]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -35,7 +36,9 @@ services:
       # - KAFKA_CLUSTERS_0_READONLY=true
     profiles: [kafka]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
+
+  # --- CACHING & NO-SQL ---
   redis:
     image: redis:alpine
     container_name: redis
@@ -47,7 +50,7 @@ services:
       - "6379:6379"
     profiles: [redis]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   redis-insight:
     image: redis/redisinsight:latest
     container_name: redis-insight
@@ -55,16 +58,8 @@ services:
       - "8077:5540"
     profiles: [redis]
     networks:
-      - devtools
-  mailpit:
-    image: axllent/mailpit
-    container_name: mailpit
-    ports:
-      - "8025:8025" # UI
-      - "1025:1025" # SMTP
-    profiles: [mail]
-    networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
+  # --- INFRASTRUCTURE & MONITORING (Docker Management) ---
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
@@ -74,7 +69,7 @@ services:
       - "8078:8080"
     profiles: [docker]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -86,7 +81,8 @@ services:
       - "8079:9000"
     profiles: [docker]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
+  # --- RELATIONAL DATABASES (SQL) ---
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -103,7 +99,7 @@ services:
       - "3306:3306"
     profiles: [mysql]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   phpmyadmin:
     image: phpmyadmin:5.2.0-apache
     container_name: phpmyadmin
@@ -117,7 +113,7 @@ services:
       - "8075:80"
     profiles: [mysql]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   postgres:
     image: postgres:14.5
     container_name: postgres
@@ -132,7 +128,7 @@ services:
       - "5432:5432"
     profiles: [psql]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
   pgadmin4:
     container_name: pgadmin4
     image: dpage/pgadmin4:9.12
@@ -143,7 +139,8 @@ services:
       - "8076:80"
     profiles: [psql]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
+  # --- DEVELOPMENT TOOLS (Mail, Storage, API) ---
   minio:
     image: "minio/minio"
     container_name: minio
@@ -161,8 +158,71 @@ services:
       - ./minio:/data
     profiles: [tools]
     networks:
-      - devtools
+      - ${DOCKER_NETWORK:-devtools}
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "8025:8025" # UI
+      - "1025:1025" # SMTP
+    profiles: [mail]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+  # --- OBSERVABILITY ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+    profiles: [obs]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "8081:3000"
+    profiles: [obs]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+
+  # --- SECURITY ---
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=root
+      - VAULT_ADDR=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    profiles: [security]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+
+  # --- API DOCS ---
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8083:8080"
+    profiles: [tools]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+
+  # --- NETWORKING & PROXY ---
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    profiles: [proxy]
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
 networks:
   devtools:
     external: false
-    name: devtools
+    name: ${DOCKER_NETWORK:-devtools}
