@@ -222,6 +222,43 @@ services:
     profiles: [proxy]
     networks:
       - ${DOCKER_NETWORK:-devtools}
+      
+  # --- GOMA GATEWAY ---
+  goma-gateway:
+    image: jkaninda/goma-gateway
+    container_name: gateway
+    profiles: [goma]
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Gateway configuration directory
+      - ${DATA_PATH:-.}/goma:/etc/goma
+      # SSL certificates managed by Let's Encrypt
+      - ${DATA_PATH:-.}/goma/letsencrypt:/etc/letsencrypt
+      # Optional: Docker provider configuration files
+      # Uncomment if using Docker provider for dynamic configuration
+      - ${DATA_PATH:-.}/goma/providers:/etc/goma/providers
+    healthcheck:
+      test: curl -f http://localhost/healthz || exit 1
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
+  goma-provider:
+    image: jkaninda/goma-docker-provider
+    container_name: goma-provider
+    profiles: [goma]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - ${DATA_PATH:-.}/goma/providers:/etc/goma/providers
+    environment:
+      - GOMA_OUTPUT_DIR=/etc/goma/providers # Optional, default /etc/goma/providers
+      - GOMA_ENABLE_SWARM=false # Enable Swarm mode, default false
+
 networks:
   devtools:
     external: false
