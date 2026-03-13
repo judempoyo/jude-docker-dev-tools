@@ -27,6 +27,7 @@ We use `make` to keep things simple. Here are the commands you'll use most often
 - `db-cache`:         Focus: Start MySQL and Redis services
 - `docker`:           Focus: Start portainer and dozzle services
 - `down`:             Stop and remove all containers, networks, and images (all profiles)
+- `goma`              Focus: start Goma-gateway and Goma-provider
 - `full-stack`:       Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
 - `help`:             Show this help message
 - `infra`:            Focus: Start infrastructure services (psql, redis, mail)
@@ -62,12 +63,14 @@ Instead of running everything at once, you can pick the specific "stack" you nee
 - **Storage & Documentation (`tools`)**: MinIO (S3-compatible storage) and Swagger UI.
 - **Email Testing (`mail`)**: Mailpit, which catches all outgoing SMTP mail for local debugging.
 - **Tunneling (`proxy`)**: Cloudflared for exposing your local services securely.
+- **Goma (`goma`)**: Goma-gateway reverse proxy and goma provider 
 
 ## Service Access Directory
 
 | Service | Access Type | Host Port | URL / Connection String |
 | :--- | :--- | :--- | :--- |
 | **Grafana** | **Browser** | 8081 | [http://localhost:8081](http://localhost:8081) (`admin` / `admin`) |
+| **Goma-Gateway** | **Browser** | 9090 | [http://localhost](http://localhost) |
 | **Prometheus** | **Browser** | 9090 | [http://localhost:9090](http://localhost:9090) |
 | **Portainer** | **Browser** | 8079 | [http://localhost:8079](http://localhost:8079) |
 | **Dozzle** | **Browser** | 8078 | [http://localhost:8078](http://localhost:8078) |
@@ -102,3 +105,6 @@ Used for exposing local services to the internet without opening ports on your r
 - [Official Docker Docs](https://docs.docker.com/)
 - [Prometheus Overview](https://prometheus.io/docs/introduction/overview/)
 - [Cloudflare Tunnels Guide](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+- [Goma Gateway Documentation](https://jkaninda.github.io/goma-gateway)
+- [Goma Gateway on GitHub](https://github.com/jkaninda/goma-gateway)
+- [Goma Docker Provider](https://github.com/jkaninda/goma-docker-provider)

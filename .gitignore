@@ -9,6 +9,7 @@ postgres
 minio
 redis
 prometheus
+goma
 .history
 .idea
 .env
