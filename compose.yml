@@ -19,7 +19,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
-      - ./kafka:/kafka
+      - ${DATA_PATH:-.}/kafka:/kafka
     profiles: [kafka]
     networks:
       - ${DOCKER_NETWORK:-devtools}
@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
     volumes:
-      - ./redis:/data
+      - ${DATA_PATH:-.}/redis:/data
     ports:
       - "6379:6379"
     profiles: [redis]
@@ -88,7 +88,7 @@ services:
     container_name: mysql
     restart: unless-stopped
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ${DATA_PATH:-.}/mysql:/var/lib/mysql
       - ./db.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -119,7 +119,7 @@ services:
     container_name: postgres
     restart: unless-stopped
     volumes:
-      - ./postgres:/var/lib/postgresql/data
+      - ${DATA_PATH:-.}/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -155,7 +155,7 @@ services:
       MINIO_ROOT_USER: ${DB_USERNAME}
       MINIO_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./minio:/data
+      - ${DATA_PATH:-.}/minio:/data
     profiles: [tools]
     networks:
       - ${DOCKER_NETWORK:-devtools}
@@ -175,7 +175,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus:/etc/prometheus
+      - ${DATA_PATH:-.}/prometheus:/etc/prometheus
     profiles: [obs]
     networks:
       - ${DOCKER_NETWORK:-devtools}
