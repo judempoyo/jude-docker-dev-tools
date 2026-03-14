@@ -19,16 +19,23 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
-      - ${DATA_PATH:-.}/kafka:/kafka
+      - ${DATA_PATH:-./data}/kafka:/kafka
     profiles: [kafka]
     networks:
       - ${DOCKER_NETWORK:-devtools}
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
+    # ports:
+    #   - "8074:8080"
+    labels:
+      - "goma.enable=true"
+      - "goma.name=kafka"
+      - "goma.path=/"
+      - "goma.port=8080"
+    restart: unless-stopped
     ports:
       - "8074:8080"
-    restart: unless-stopped
     environment:
       - KAFKA_CLUSTERS_0_NAME=dev-cluster
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
@@ -45,7 +52,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
     volumes:
-      - ${DATA_PATH:-.}/redis:/data
+      - ${DATA_PATH:-./data}/redis:/data
     ports:
       - "6379:6379"
     profiles: [redis]
@@ -88,7 +95,7 @@ services:
     container_name: mysql
     restart: unless-stopped
     volumes:
-      - ${DATA_PATH:-.}/mysql:/var/lib/mysql
+      - ${DATA_PATH:-./data}/mysql:/var/lib/mysql
       - ./db.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -119,7 +126,7 @@ services:
     container_name: postgres
     restart: unless-stopped
     volumes:
-      - ${DATA_PATH:-.}/postgres:/var/lib/postgresql/data
+      - ${DATA_PATH:-./data}/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -155,7 +162,7 @@ services:
       MINIO_ROOT_USER: ${DB_USERNAME}
       MINIO_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ${DATA_PATH:-.}/minio:/data
+      - ${DATA_PATH:-./data}/minio:/data
     profiles: [tools]
     networks:
       - ${DOCKER_NETWORK:-devtools}
@@ -175,7 +182,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ${DATA_PATH:-.}/prometheus:/etc/prometheus
+      - ${DATA_PATH:-./data}/prometheus:/etc/prometheus
     profiles: [obs]
     networks:
       - ${DOCKER_NETWORK:-devtools}
@@ -234,12 +241,15 @@ services:
       - "443:443"
     volumes:
       # Gateway configuration directory
-      - ${DATA_PATH:-.}/goma:/etc/goma
+      - ${DATA_PATH:-./data}/goma:/etc/goma
       # SSL certificates managed by Let's Encrypt
-      - ${DATA_PATH:-.}/goma/letsencrypt:/etc/letsencrypt
+      - ${DATA_PATH:-./data}/goma/letsencrypt:/etc/letsencrypt
       # Optional: Docker provider configuration files
       # Uncomment if using Docker provider for dynamic configuration
-      - ${DATA_PATH:-.}/goma/providers:/etc/goma/providers
+      - ${DATA_PATH:-./data}/goma/providers:/etc/goma/providers
+    environment:
+      -  GOMA_EXTRA_CONFIG_DIR=/etc/goma/providers
+      -  GOMA_EXTRA_CONFIG_WATCH=true
     healthcheck:
       test: curl -f http://localhost/healthz || exit 1
       interval: 30s
@@ -254,12 +264,12 @@ services:
     profiles: [goma]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro 
-      - ${DATA_PATH:-.}/goma/providers:/etc/goma/providers
+      - ${DATA_PATH:-./data}/goma/providers:/etc/goma/providers
     environment:
       - GOMA_OUTPUT_DIR=/etc/goma/providers # Optional, default /etc/goma/providers
       - GOMA_ENABLE_SWARM=false # Enable Swarm mode, default false
 
 networks:
   devtools:
-    external: false
+    external: true
     name: ${DOCKER_NETWORK:-devtools}

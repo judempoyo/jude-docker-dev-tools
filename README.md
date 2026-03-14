@@ -27,7 +27,7 @@ We use `make` to keep things simple. Here are the commands you'll use most often
 - `db-cache`:         Focus: Start MySQL and Redis services
 - `docker`:           Focus: Start portainer and dozzle services
 - `down`:             Stop and remove all containers, networks, and images (all profiles)
-- `gateway`              Focus: start Goma-gateway and Goma-provider
+- `goma`              Focus: start Goma-gateway and Goma-provider
 - `full-stack`:       Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
 - `help`:             Show this help message
 - `infra`:            Focus: Start infrastructure services (psql, redis, mail)

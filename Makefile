@@ -56,7 +56,7 @@ security: ## Focus: Start HashiCorp Vault
 proxy: ## Focus: Start  Cloudflared
 	$(COMPOSE) --profile proxy up -d
 
-gateway: ## Focus: Start  goma-gateway and goma-provider
+goma: ## Focus: Start  goma-gateway and goma-provider
 	$(COMPOSE) --profile goma up -d
 
 full-stack: ## Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
