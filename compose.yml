@@ -26,12 +26,12 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
-    # ports:
-    #   - "8074:8080"
     labels:
       - "goma.enable=true"
       - "goma.name=kafka"
-      - "goma.path=/"
+      # - "goma.hosts=kafka.localhost"
+      - "goma.path=/kafka"
+      - "goma.rewrite=/kafka"
       - "goma.port=8080"
     restart: unless-stopped
     ports:
@@ -61,6 +61,8 @@ services:
   redis-insight:
     image: redis/redisinsight:latest
     container_name: redis-insight
+    volumes:
+      - ${DATA_PATH:-./data}/redisinsight:/data
     ports:
       - "8077:5540"
     profiles: [redis]
@@ -268,6 +270,8 @@ services:
     environment:
       - GOMA_OUTPUT_DIR=/etc/goma/providers # Optional, default /etc/goma/providers
       - GOMA_ENABLE_SWARM=false # Enable Swarm mode, default false
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
 
 networks:
   devtools:
