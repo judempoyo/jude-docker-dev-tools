@@ -1,7 +1,7 @@
 services:
   # --- MESSAGE BROKING & STREAMING (Kafka Stack) ---
   zookeeper:
-    image: wurstmeister/zookeeper
+    image: bitnami/zookeeper:latest
     container_name: zookeeper
     profiles: [kafka]
     networks:
@@ -47,7 +47,7 @@ services:
 
   # --- CACHING & NO-SQL ---
   redis:
-    image: redis:alpine
+    image: redis:8.6.2-alpine
     container_name: redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
@@ -59,7 +59,7 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   redis-insight:
-    image: redis/redisinsight:latest
+    image: redislabs/redisinsight:3.2
     container_name: redis-insight
     volumes:
       - ${DATA_PATH:-./data}/redisinsight:/data
@@ -93,7 +93,7 @@ services:
       - ${DOCKER_NETWORK:-devtools}
   # --- RELATIONAL DATABASES (SQL) ---
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: mysql
     restart: unless-stopped
     volumes:
@@ -110,7 +110,7 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   phpmyadmin:
-    image: phpmyadmin:5.2.0-apache
+    image: phpmyadmin/phpmyadmin:5.2.3-fpm-alpine
     container_name: phpmyadmin
     depends_on:
       - mysql
@@ -124,13 +124,12 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   postgres:
-    image: postgres:14.5
+    image: postgres:18.3
     container_name: postgres
     restart: unless-stopped
     volumes:
-      - ${DATA_PATH:-./data}/postgres:/var/lib/postgresql/data
+      - ${DATA_PATH:-./data}/postgres:/var/lib/postgresql
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
     ports:
@@ -138,9 +137,9 @@ services:
     profiles: [psql]
     networks:
       - ${DOCKER_NETWORK:-devtools}
-  pgadmin4:
-    container_name: pgadmin4
-    image: dpage/pgadmin4:9.12
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:9.13
     volumes:
       - ${DATA_PATH:-.data}/pgadmin:/var/lib/pgadmin
     environment:
