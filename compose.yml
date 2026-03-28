@@ -1,7 +1,7 @@
 services:
   # --- MESSAGE BROKING & STREAMING (Kafka Stack) ---
   zookeeper:
-    image: bitnami/zookeeper:latest
+    image: wurstmeister/zookeeper
     container_name: zookeeper
     profiles: [kafka]
     networks:
