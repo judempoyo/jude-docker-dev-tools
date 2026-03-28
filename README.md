@@ -20,33 +20,47 @@ cp .env.example .env
 Open `.env` and set `DOCKER_NETWORK=devtools`. This is also where you'll define your database passwords, Cloudflare tokens, and other secrets.
 
 ### 3. Usage & Essential Commands
-We use `make` to keep things simple. Here are the commands you'll use most often:
+We use `make` to keep things simple. The core commands can be applied to all services or dynamically to specific profiles!
 
-- `all`:              Start all services including all profiles (kafka, redis, psql, mail, tools, etc.)
+**Command Syntax:** 
+`make <command> [profile1] [profile2] ...`
+
+#### Dynamic Core Commands
+These commands adapt based on the profiles you provide. If no profile is provided, they fall back to their default scope:
+- `up`:               Start services (core by default. Use e.g. `make up psql redis` for specific profiles)
+- `down`:             Stop and remove services (all by default, or specific profiles e.g. `make down psql`)
+- `stop`:             Stop services without removing them (all by default, or specific profiles e.g. `make stop psql`)
+- `restart`:          Restart services (all by default, or specific profiles e.g. `make restart psql`)
+- `logs`:             Follow logs (all by default, or specific profiles e.g. `make logs psql`)
+
+#### Environment Stacks
+These are helpful shortcuts to automatically start (`make <stack>`) combined groups of profiles:
+- `all`:              Start **all** services across every profile
+- `full-stack`:       Standard dev environment (MySQL, Redis, Mail, Proxy)
+- `infra`:            Infrastructure services (PostgreSQL, Redis, Mail)
+- `db-cache`:         Database & Caching (MySQL, Redis)
+- `stream`:           Streaming infrastructure (Kafka, Redis)
+
+#### Utilities
+- `ps`:               List status of all containers
+- `stats`:            Display resource usage metrics
 - `clean`:            Deep clean: remove stopped containers and unused networks
-- `db-cache`:         Focus: Start MySQL and Redis services
-- `docker`:           Focus: Start portainer and dozzle services
-- `down`:             Stop and remove all containers, networks, and images (all profiles)
-- `goma`              Focus: start Goma-gateway and Goma-provider
-- `full-stack`:       Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
-- `help`:             Show this help message
-- `infra`:            Focus: Start infrastructure services (psql, redis, mail)
-- `kafka`:            Focus: Start kafka, kafka-ui and zookeeper services 
-- `logs`:             Follow logs of all containers
-- `mail`:             Focus: Start mail service
-- `mysql`:            Focus: Start postgres and pgadmin services 
-- `obs`:              Focus: Start Prometheus and Grafana
-- `proxy`:            Focus: Start  Cloudflared
-- `ps`:               List all containers status
-- `psql`:             Focus: Start postgres and pgadmin services 
-- `redis`:            Focus: Start redis and redis insight services 
-- `restart`:          Restart all running containers
-- `security`:         Focus: Start HashiCorp Vault
-- `stats`:            Display resource usage for all services
-- `stream`:           Focus: Start streaming stack (kafka, redis)
-- `tools`:            Focus: Start minio service
-- `up`:               Start core services (without profiles)
 - `version`:          Show versions of images used
+- `help`:             Show the Makefile help message
+
+#### Single Stacks
+Quickly start specific individual tools (`make up/down/stop/restart/log <stack>`):
+- `docker`:           Portainer and Dozzle
+- `goma`:             Goma-gateway and Goma-provider
+- `kafka`:            Kafka, Kafka-UI, and Zookeeper
+- `mail`:             Mailpit
+- `mysql`:            MySQL and phpMyAdmin
+- `obs`:              Prometheus and Grafana
+- `proxy`:            Cloudflared
+- `psql`:             PostgreSQL and pgAdmin
+- `redis`:            Redis and Redis Insight
+- `security`:         HashiCorp Vault
+- `tools`:            MinIO
 
 ## Stacks & Profiles
 

@@ -1,86 +1,87 @@
 COMPOSE = docker compose
 ALL_PROFILES = COMPOSE_PROFILES="*"
+D ?= -d
+P ?= 
 
-.PHONY: help up all down restart ps logs clean
+SUPPORTED_COMMANDS := up stop down logs restart
+ifneq ($(filter $(SUPPORTED_COMMANDS),$(firstword $(MAKECMDGOALS))),)
+  PROFILES_LIST := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  PROFILE_FLAGS := $(foreach p,$(PROFILES_LIST),--profile $(p))
+  $(eval $(PROFILES_LIST):;@:)
+endif
+
+.PHONY: help up stop all down restart ps logs clean check-tools \
+         db-cache infra stream full-stack
 
 help: ## Show this help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo "\033[36mUsage:\033[0m make <command> <profile1> <profile2> [D=\"\"]"
+	@echo ""
+	@echo "\033[36mCommands:\033[0m"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "\033[36mAvailable Profiles (detected from docker-compose):\033[0m"
+	@grep 'profiles:' compose.yml | sed 's/.*\[\(.*\)\].*/  - \1/' | sed 's/,/\n  -/g' | sort -u
 
 check-tools:
 	@command -v docker >/dev/null 2>&1 || { echo "\033[31mError: docker is not installed.\033[0m"; exit 1; }
 	@command -v docker compose >/dev/null 2>&1 || { echo "\033[31mError: docker-compose is not installed.\033[0m"; exit 1; }
 	@echo "\033[32mAll tools are installed! \033[0m"
 
-up: check-tools ## Start core services (without profiles)
-	$(COMPOSE) up -d
 
-all: ## Start all services including all profiles (kafka, redis, psql, mail, tools, etc.)
-	$(ALL_PROFILES) $(COMPOSE) up -d
+up: check-tools ## Start services (core by default, or specific profiles e.g. 'make up psql redis', D="")
+	@if [ -z "$(PROFILES_LIST)" ]; then $(COMPOSE) up $(D); \
+	else $(COMPOSE) $(PROFILE_FLAGS) up $(D); fi
 
-mysql: ## Focus: Start postgres and pgadmin services 
-	$(COMPOSE) --profile mysql up -d
+stop: ## Stop services (all by default, or specific profiles e.g. 'make stop psql redis')
+	@if [ -z "$(PROFILES_LIST)" ]; then $(ALL_PROFILES) $(COMPOSE) stop; \
+	else $(COMPOSE) $(PROFILE_FLAGS) stop; fi
 
-db-cache: ## Focus: Start MySQL and Redis services
-	$(COMPOSE) --profile mysql --profile redis up -d
+down: ## Remove services (all by default, or specific profiles e.g. 'make down psql redis')
+	@if [ -z "$(PROFILES_LIST)" ]; then $(ALL_PROFILES) $(COMPOSE) down; \
+	else $(COMPOSE) $(PROFILE_FLAGS) down; fi
 
-infra: ## Focus: Start infrastructure services (psql, redis, mail)
-	$(COMPOSE) --profile psql --profile redis --profile mail up -d
+logs: ## Follow logs (all by default, or specific profiles e.g. 'make logs psql redis')
+	@if [ -z "$(PROFILES_LIST)" ]; then $(ALL_PROFILES) $(COMPOSE) logs -f --tail=100; \
+	else $(COMPOSE) $(PROFILE_FLAGS) logs -f --tail=100; fi
 
-psql: ## Focus: Start postgres and pgadmin services 
-	$(COMPOSE) --profile psql up -d
-
-redis: ## Focus: Start redis and redis insight services 
-	$(COMPOSE) --profile redis  up -d
-
-mail: ## Focus: Start mail service
-	$(COMPOSE)  --profile mail up -d
-
-stream: ## Focus: Start streaming stack (kafka, redis)
-	$(COMPOSE) --profile kafka --profile redis up -d
-
-kafka: ## Focus: Start kafka, kafka-ui and zookeeper services 
-	$(COMPOSE) --profile kafka up -d
-
-docker: ## Focus: Start portainer and dozzle services
-	$(COMPOSE) --profile docker  up -d
-
-tools: ## Focus: Start minio service
-	$(COMPOSE) --profile tools  up -d
-
-obs: ## Focus: Start Prometheus and Grafana
-	$(COMPOSE) --profile obs up -d
-
-security: ## Focus: Start HashiCorp Vault
-	$(COMPOSE) --profile security up -d
-
-proxy: ## Focus: Start  Cloudflared
-	$(COMPOSE) --profile proxy up -d
-
-goma: ## Focus: Start  goma-gateway and goma-provider
-	$(COMPOSE) --profile goma up -d
-
-full-stack: ## Focus: Standard dev environment (MySQL, Redis, Mail, Proxy)
-	$(COMPOSE) --profile mysql --profile redis --profile mail --profile proxy up -d
+restart: ## Restart services (all by default, or specific profiles e.g. 'make restart psql')
+	@if [ -z "$(PROFILES_LIST)" ]; then $(ALL_PROFILES) $(COMPOSE) restart; \
+	else $(COMPOSE) $(PROFILE_FLAGS) restart; fi
 
 
-stats: ## Display resource usage for all services
+all: ## Start all services including all profiles
+	$(ALL_PROFILES) $(COMPOSE) up $(D)
+
+db-cache: ## Focus: MySQL and Redis
+	$(COMPOSE) --profile mysql --profile redis up $(D)
+
+infra: ## Focus: psql, redis, mail
+	$(COMPOSE) --profile psql --profile redis --profile mail up $(D)
+
+stream: ## Focus: kafka, redis
+	$(COMPOSE) --profile kafka --profile redis up $(D)
+
+full-stack: ## Focus: Standard dev environment
+	$(COMPOSE) --profile mysql --profile redis --profile mail --profile proxy up $(D)
+
+stats: ## Display resource usage
 	docker stats --no-stream
 
-version: ## Show versions of images used
+version: ## Show versions of images
 	$(ALL_PROFILES) $(COMPOSE) images
 
-down: ## Stop and remove all containers, networks, and images (all profiles)
+down-all: ## Stop and remove everything (all profiles)
 	$(ALL_PROFILES) $(COMPOSE) down
 
-restart: ## Restart all running containers
+restart-all: ## Restart all running containers
 	$(ALL_PROFILES) $(COMPOSE) restart
 
 ps: ## List all containers status
 	$(ALL_PROFILES) $(COMPOSE) ps
 
-logs: ## Follow logs of all containers
+logs-all: ## Follow logs of all containers
 	$(ALL_PROFILES) $(COMPOSE) logs -f --tail=100
 
-clean: ## Deep clean: remove stopped containers and unused networks
+clean: ## Deep clean
 	$(ALL_PROFILES) $(COMPOSE) down --remove-orphans
 	docker system prune -f
