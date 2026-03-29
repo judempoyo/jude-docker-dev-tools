@@ -29,9 +29,9 @@ services:
     labels:
       - "goma.enable=true"
       - "goma.name=kafka"
-      # - "goma.hosts=kafka.localhost"
-      - "goma.path=/kafka"
-      - "goma.rewrite=/kafka"
+      - "goma.hosts=kafka.localhost"
+      #- "goma.path=/kafka"
+      #- "goma.rewrite=/"
       - "goma.port=8080"
     restart: unless-stopped
     ports:
@@ -61,6 +61,13 @@ services:
   redis-insight:
     image: redislabs/redisinsight:3.2
     container_name: redis-insight
+    labels:
+      - "goma.enable=true"
+      - "goma.name=redis-insight"
+      - "goma.hosts=redis-insight.localhost"
+      #- "goma.path=/redis-insight"
+      #- "goma.rewrite=/"
+      - "goma.port=5540"
     volumes:
       - ${DATA_PATH:-./data}/redisinsight:/data
     ports:
@@ -72,6 +79,13 @@ services:
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
+    labels:
+      - "goma.enable=true"
+      - "goma.name=dozzle"
+      - "goma.hosts=dozzle.localhost"
+      #- "goma.path=/dozzle"
+      #- "goma.rewrite=/"
+      - "goma.port=8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -82,6 +96,13 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
+    labels:
+      - "goma.enable=true"
+      - "goma.name=portainer"
+      - "goma.hosts=portainer.localhost"
+      #- "goma.path=/portainer"
+      #- "goma.rewrite=/"
+      - "goma.port=9000"
     command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -112,6 +133,13 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:5.2.3-fpm-alpine
     container_name: phpmyadmin
+    labels:
+      - "goma.enable=true"
+      - "goma.name=phpmyadmin"
+      - "goma.hosts=phpmyadmin.localhost"
+      #- "goma.path=/phpmyadmin"
+      #- "goma.rewrite=/"
+      - "goma.port=80"
     depends_on:
       - mysql
     environment:
@@ -138,8 +166,16 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   pgadmin:
-    container_name: pgadmin
     image: dpage/pgadmin4:9.13
+    container_name: pgadmin
+    labels:
+      - "goma.enable=true"
+      - "goma.name=pgadmin"
+      - "goma.hosts=pgadmin.localhost"
+      #- "goma.path=/pgadmin"
+      #- "goma.rewrite=/"
+      - "goma.port=80"
+      - "goma.security.forward_host_headers=true"
     volumes:
       - ${DATA_PATH:-.data}/pgadmin:/var/lib/pgadmin
     environment:
@@ -154,6 +190,13 @@ services:
   minio:
     image: "minio/minio"
     container_name: minio
+    labels:
+      - "goma.enable=true"
+      - "goma.name=minio"
+      - "goma.hosts=minio.localhost"
+      #- "goma.path=/minio"
+      #- "goma.rewrite=/"
+      - "goma.port=9001"
     restart: unless-stopped
     command: server /data --console-address ":9001"
     ports:
@@ -172,6 +215,13 @@ services:
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
+    labels:
+      - "goma.enable=true"
+      - "goma.name=mailpit"
+      - "goma.hosts=mailpit.localhost"
+      #- "goma.path=/mailpit"
+      #- "goma.rewrite=/"
+      - "goma.port=8025"
     ports:
       - "8025:8025" # UI
       - "1025:1025" # SMTP
@@ -182,6 +232,13 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    labels:
+      - "goma.enable=true"
+      - "goma.name=prometheus"
+      - "goma.hosts=prometheus.localhost"
+      #- "goma.path=/prometheus"
+      #- "goma.rewrite=/"
+      - "goma.port=9090"
     ports:
       - "9090:9090"
     volumes:
@@ -193,6 +250,13 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    labels:
+      - "goma.enable=true"
+      - "goma.name=grafana"
+      - "goma.hosts=grafana.localhost"
+      #- "goma.path=/grafana"
+      #- "goma.rewrite=/"
+      - "goma.port=3000"
     ports:
       - "8081:3000"
     profiles: [obs]
@@ -203,6 +267,13 @@ services:
   vault:
     image: hashicorp/vault:latest
     container_name: vault
+    labels:
+      - "goma.enable=true"
+      - "goma.name=vault"
+      - "goma.hosts=vault.localhost"
+      #- "goma.path=/vault"
+      #- "goma.rewrite=/"
+      - "goma.port=8200"
     ports:
       - "8200:8200"
     environment:
@@ -218,6 +289,13 @@ services:
   swagger-ui:
     image: swaggerapi/swagger-ui
     container_name: swagger-ui
+    labels:
+      - "goma.enable=true"
+      - "goma.name=swagger-ui"
+      - "goma.hosts=swagger-ui.localhost"
+      #- "goma.path=/swagger-ui"
+      #- "goma.rewrite=/"
+      - "goma.port=8080"
     ports:
       - "8083:8080"
     profiles: [tools]
@@ -232,7 +310,7 @@ services:
     profiles: [proxy]
     networks:
       - ${DOCKER_NETWORK:-devtools}
-      
+
   # --- GOMA GATEWAY ---
   goma-gateway:
     image: jkaninda/goma-gateway
@@ -251,8 +329,12 @@ services:
       # Uncomment if using Docker provider for dynamic configuration
       - ${DATA_PATH:-./data}/goma/providers:/etc/goma/providers
     environment:
-      -  GOMA_EXTRA_CONFIG_DIR=/etc/goma/providers
-      -  GOMA_EXTRA_CONFIG_WATCH=true
+      - GOMA_LOG_LEVEL=info
+      - GOMA_ENTRYPOINT_WEB_ADDRESS=:80
+      - GOMA_ENTRYPOINT_WEB_SECURE_ADDRESS=:443
+      - GOMA_FILE_PROVIDER_ENABLED=true
+      - GOMA_FILE_PROVIDER_WATCH=true
+      - GOMA_FILE_PROVIDER_DIRECTORY=/etc/goma/providers/dev
     healthcheck:
       test: curl -f http://localhost/healthz || exit 1
       interval: 30s
@@ -267,7 +349,7 @@ services:
     profiles: [goma]
     restart: unless-stopped
     ports:
-      - 9000:9000
+      - "${GOMA_PORT:-9000}:9000"
     env_file:
       - .env
     labels:
