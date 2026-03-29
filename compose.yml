@@ -131,7 +131,7 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:5.2.3-fpm-alpine
+    image: phpmyadmin:5.2.3-apache
     container_name: phpmyadmin
     labels:
       - "goma.enable=true"
