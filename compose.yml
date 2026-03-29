@@ -158,7 +158,7 @@ services:
     command: server /data --console-address ":9001"
     ports:
       # API Port
-      - "9000:9000"
+      - "9002:9000"
       # Console Port
       - "9001:9001"
     environment:
@@ -261,16 +261,23 @@ services:
       timeout: 10s
     networks:
       - ${DOCKER_NETWORK:-devtools}
-  goma-provider:
-    image: jkaninda/goma-docker-provider
-    container_name: goma-provider
+  goma-admin:
+    image: jkaninda/goma-admin:latest
+    container_name: goma-admin
     profiles: [goma]
+    restart: unless-stopped
+    ports:
+      - 9000:9000
+    env_file:
+      - .env
+    labels:
+      - "goma.enable=true"
+      - "goma.port=9000"
+      - "goma.hosts=goma-admin.localhost"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro 
       - ${DATA_PATH:-./data}/goma/providers:/etc/goma/providers
-    environment:
-      - GOMA_OUTPUT_DIR=/etc/goma/providers # Optional, default /etc/goma/providers
-      - GOMA_ENABLE_SWARM=false # Enable Swarm mode, default false
+      # Uncomment to enable the Docker provider (auto-discover routes from labels)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - ${DOCKER_NETWORK:-devtools}
 
