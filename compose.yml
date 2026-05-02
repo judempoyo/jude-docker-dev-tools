@@ -106,7 +106,7 @@ services:
     command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
+      - ${DATA_PATH:-./data}/portainer:/data
     ports:
       - "8079:9000"
     profiles: [docker]
