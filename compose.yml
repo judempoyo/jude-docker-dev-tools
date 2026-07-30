@@ -166,7 +166,7 @@ services:
     networks:
       - ${DOCKER_NETWORK:-devtools}
   pgadmin:
-    image: dpage/pgadmin4:9.13
+    image: dpage/pgadmin4:9.16
     container_name: pgadmin
     labels:
       - "goma.enable=true"
@@ -334,7 +334,7 @@ services:
       - GOMA_ENTRYPOINT_WEB_SECURE_ADDRESS=:443
       - GOMA_FILE_PROVIDER_ENABLED=true
       - GOMA_FILE_PROVIDER_WATCH=true
-      - GOMA_FILE_PROVIDER_DIRECTORY=/etc/goma/providers/dev
+      - GOMA_FILE_PROVIDER_DIRECTORY=/etc/goma/providers/default
     healthcheck:
       test: curl -f http://localhost/healthz || exit 1
       interval: 30s
