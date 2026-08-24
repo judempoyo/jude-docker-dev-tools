@@ -375,17 +375,19 @@ services:
       - "goma.hosts=docmost.localhost"
       #- "goma.path=/docmost"
       #- "goma.rewrite=/"
-      - "goma.port=6000"
+      - "goma.port=3030"
     environment:
-      APP_URL: "http://localhost:3000"
+      APP_URL: "http://localhost:3030"
       APP_SECRET: ${DOCMOST_SECRET}
-      DATABASE_URL: "postgresql://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/docmost?sslmode=disable"
-      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
+      DATABASE_URL: ${DOCMOST_DATABASE_URL}
+      REDIS_URL: ${DOCMOST_REDIS_URL}
     ports:
-      - "6000:3000"
+      - "3030:3000"
     restart: unless-stopped
     volumes:
       - ${DATA_PATH:-.data}/docmost:/app/data/storage
+    networks:
+      - ${DOCKER_NETWORK:-devtools}
 
 networks:
   devtools:
