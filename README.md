@@ -61,6 +61,7 @@ Quickly start specific individual tools (`make up/down/stop/restart/log <stack>`
 - `redis`:            Redis and Redis Insight
 - `security`:         HashiCorp Vault
 - `tools`:            MinIO
+- `docmost`:          Docmost(require postgres and redis)
 
 ## Stacks & Profiles
 
@@ -96,6 +97,7 @@ Instead of running everything at once, you can pick the specific "stack" you nee
 | **Mailpit UI** | **Browser** | 8025 | [http://localhost:8025](http://localhost:8025) |
 | **Swagger UI** | **Browser** | 8083 | [http://localhost:8083](http://localhost:8083) |
 | **Vault** | **Browser** | 8200 | [http://localhost:8200](http://localhost:8200) |
+| **Docmost** | **Browser** | 6000 | [http://localhost:6000](http://localhost:6000) |
 | **MySQL** | Direct/CLI | 3306 | `localhost:3306` |
 | **PostgreSQL** | Direct/CLI | 5432 | `localhost:5432` |
 | **Kafka** | Direct/CLI | 9092 | `localhost:9092` |
